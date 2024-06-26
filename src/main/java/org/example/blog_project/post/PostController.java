@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.blog_project.member.UserContext;
 import org.example.blog_project.post.dto.CreatePostResDto;
+import org.example.blog_project.post.dto.DetailPostDto;
 import org.example.blog_project.post.dto.PostForm;
 import org.example.blog_project.post.dto.PublishForm;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.List;
 
 
@@ -55,10 +58,10 @@ public class PostController {
     }
 
     @PostMapping("/api/posts/publish")
-    public String publishPost(
-                              @RequestPart(name = "publishForm")PublishForm form,
+    public String publishPost(@RequestPart(name = "publishForm")PublishForm form,
                               @RequestParam(name = "file",required = false) MultipartFile file) {
-        String url = postService.publishPost( form, file);
+
+        String url = postService.publishPost(form, file);
         return "redirect:"+url;
     }
 
@@ -74,6 +77,24 @@ public class PostController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/@{loginId}/{encodedTitle}")
+    public String getDetailPost(
+                                @PathVariable String loginId,
+                                @PathVariable String encodedTitle,
+                                Model model) throws UnsupportedEncodingException {
+
+        // URL 디코딩
+        String decodedTitle = URLDecoder.decode(encodedTitle, "UTF-8");
+
+        // 게시글 상세 정보를 데이터베이스에서 조회
+        DetailPostDto post = postService.getDetailPost(loginId, decodedTitle);
+
+        // 모델에 게시글 정보를 추가
+        model.addAttribute("post", post);
+
+        // 게시글 상세 페이지를 반환
+        return "post/postDetail"; // 뷰 이름
+    }
 
 
 

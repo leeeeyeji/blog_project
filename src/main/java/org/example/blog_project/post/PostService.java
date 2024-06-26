@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.blog_project.member.Member;
 import org.example.blog_project.member.MemberRepository;
 import org.example.blog_project.post.dto.CreatePostResDto;
+import org.example.blog_project.post.dto.DetailPostDto;
 import org.example.blog_project.post.dto.PostForm;
 import org.example.blog_project.post.dto.PublishForm;
 import org.example.blog_project.post_image.PostImageService;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -23,6 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -79,9 +82,14 @@ public class PostService {
         post.setIntroduce(form.getIntroduce());
         post.setisHide(form.getIsHide());
         post.setSeries(post.getSeries());
-        String encodeResult = URLEncoder.encode(" /@"+post.getMember().getLoginId()+"/posts"+form.getPostUrl(), StandardCharsets.UTF_8);
-        log.info(encodeResult);
-        post.setPostUrl(encodeResult);
+
+        try {
+            String encodedInput = URLEncoder.encode(form.getPostUrl(), "UTF-8");
+            String url = String.format("/@%s/%s", post.getMember().getLoginId(), encodedInput);
+            post.setPostUrl(url);
+        } catch (UnsupportedEncodingException e) {
+            log.info(e.getMessage());
+        }
 
         if(file != null){
             if(post.getMainImageUrl()!=null){
@@ -91,8 +99,9 @@ public class PostService {
             post.setMainImageUrl(fileName);
         }
         postRepository.save(post);
-        return encodeResult;
+        return post.getPostUrl();
     }
+
 
     public String updatePost(PostForm form,Long postId){
         Post post = postRepository.findById(postId)
@@ -168,5 +177,34 @@ public class PostService {
         } catch (IOException e) {
             throw new RuntimeException("Failed to save file", e);
         }
+    }
+
+    public DetailPostDto getDetailPost(String loginId, String decodedTitle){
+        Post post = postRepository.findByPostUrl(decodedTitle)
+                .orElseThrow(() -> new RuntimeException("존재하지않는 게시글"));
+        Optional<Post> previousPost = getPreviousPost(post.getMember().getMemberId(), post.getPostId());
+        Optional<Post> nextPost = getNextPost(post.getMember().getMemberId(), post.getPostId());
+        return DetailPostDto.builder()
+                .title(post.getTitle())
+                .author(post.getMember().getName())
+                .createdAt(post.getCreatedAt())
+                .postTagList(post.postTagList)
+                .series(post.getSeries())
+                .content(post.getContent())
+                .profileImageUrl(post.getMainImageUrl())
+                .prePostId(previousPost.map(Post::getPostId).orElse(null))
+                .nextPostId(nextPost.map(Post::getPostId).orElse(null))
+                .build();
+    }
+
+    public Optional<Post> getPreviousPost(Long memberId, Long postId) {
+        List<Post> previousPosts = postRepository.findPreviousPost(memberId, postId);
+        return previousPosts.isEmpty() ? Optional.empty() : Optional.of(previousPosts.get(0));
+    }
+
+
+    public Optional<Post> getNextPost(Long memberId, Long postId) {
+        List<Post> nextPosts = postRepository.findNextPost(memberId, postId);
+        return nextPosts.isEmpty() ? Optional.empty() : Optional.of(nextPosts.get(0));
     }
 }

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 상세 페이지</title>
+</head>
+<body>
+<h1 th:text="${post.title}">게시글 제목</h1>
+<p>작성자: <span th:text="${post.author}">작성자 이름</span></p>
+<p>작성일: <span th:text="${post.createdAt}">작성일</span></p>
+<p th:text="${post.content}">게시글 내용</p>
+
+<div>
+        <span th:if="${post.prePostId != null}">
+            <a th:href="@{'/api/posts?postId=' + ${post.prePostId}}">이전글</a>
+        </span>
+</div>
+
+<div>
+        <span th:if="${post.nextPostId != null}">
+            <a th:href="@{'/api/posts?postId=' + ${post.nextPostId}}">다음글</a>
+        </span>
+</div>
+</body>
+</html>
