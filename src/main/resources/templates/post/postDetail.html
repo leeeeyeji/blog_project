@@ -11,14 +11,14 @@
 <p th:text="${post.content}">게시글 내용</p>
 
 <div>
-        <span th:if="${post.prePostId != null}">
-            <a th:href="@{'/api/posts?postId=' + ${post.prePostId}}">이전글</a>
+        <span th:if="${post.prePostUrl != null}">
+            <a th:href="@{${post.prePostUrl}}">이전글</a>
         </span>
 </div>
 
 <div>
-        <span th:if="${post.nextPostId != null}">
-            <a th:href="@{'/api/posts?postId=' + ${post.nextPostId}}">다음글</a>
+        <span th:if="${post.nextPostUrl != null}">
+            <a th:href="@{${post.nextPostUrl}}">다음글</a>
         </span>
 </div>
 </body>

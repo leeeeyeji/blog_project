@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.blog_project.member.dto.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class MemberService {
 
     @Value("${file.path}")
@@ -25,7 +27,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
 
-
+    @Transactional
     public Long login(LoginForm form){
         Member member = memberRepository.findMemberByLoginId(form.getLoginId());
 
@@ -40,6 +42,7 @@ public class MemberService {
         return member.getMemberId();
     }
 
+    @Transactional
     public Boolean register(RegisterForm form) {
         // 아이디와 이메일 형식 검증
         if (!form.getLoginId().matches("^[a-zA-Z0-9]{8,}$")) {
@@ -65,6 +68,7 @@ public class MemberService {
         memberRepository.save(member);
         return true;
     }
+
 
 
     public Boolean idCheck(String loginId){
@@ -98,6 +102,7 @@ public class MemberService {
                 .build();
     }
 
+    @Transactional
     public void updateBlogName(String blogName,Long memberId){
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("존재하지않는 유저"));
@@ -107,6 +112,7 @@ public class MemberService {
 
     }
 
+    @Transactional
     public String updateProfileImage(MultipartFile file, Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저"));
@@ -120,6 +126,7 @@ public class MemberService {
         return fileName;
     }
 
+    @Transactional
     public boolean deleteFile(Long memberId, String fileName) {
         if (fileName == null || fileName.isEmpty()) {
             return false;
@@ -167,12 +174,14 @@ public class MemberService {
         }
     }
 
+    @Transactional
     public void updateAllowCommentEmail(Long memberId, AllowCommentDto allowCommentDto){
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저"));
         member.setAllowCommentPush(allowCommentDto.getValue());
         memberRepository.save(member);
     }
+    @Transactional
     public void updateAllowUpdateEmail(Long memberId, AllowUpdateDto allowUpdateDto){
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저"));
@@ -180,6 +189,7 @@ public class MemberService {
         memberRepository.save(member);
     }
 
+    @Transactional
     public Boolean updateEmail(Long memberId,String newEmail){
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저"));
@@ -194,6 +204,7 @@ public class MemberService {
         return true;
     }
 
+    @Transactional
     public Boolean deleteMember(Long memberId,String password){
         Member member = memberRepository.findById(memberId)
                 .orElse(null);

@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>게시물 리스트</title>
-    <link rel="stylesheet" href="/css/style.css">
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
             color: #333;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
@@ -24,6 +24,25 @@
             width: 100%;
             max-width: 1200px;
             box-sizing: border-box;
+            position: relative;
+        }
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        .header button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .header button:hover {
+            background-color: #45a049;
         }
         h1 {
             text-align: center;
@@ -87,6 +106,9 @@
 </head>
 <body>
 <div class="container">
+    <div class="header">
+        <button id="userInfoButton">내 정보 보기</button>
+    </div>
     <h1>게시물 리스트</h1>
     <div th:each="post : ${posts}" class="card">
         <img th:src="${post.mainImageUrl}" alt="썸네일" class="thumbnail">
@@ -106,5 +128,54 @@
         </div>
     </div>
 </div>
+<script type="module">
+    class Auth {
+        static getToken() {
+            // 쿠키에서 토큰 읽기
+            console.log("document.cookie:", document.cookie); // 쿠키 확인용
+            const cookieName = 'jwtToken';
+            const cookie = document.cookie.split('; ').find(row => row.startsWith(cookieName));
+            console.log("Found cookie:", cookie); // 쿠키 찾기 확인용
+            return cookie ? cookie.split('=')[1] : null;
+        }
+
+        static getAuthHeader() {
+            const token = this.getToken();
+            console.log("Token:", token); // 토큰 확인용
+            return token ? { 'Authorization': 'Bearer ' + token } : {};
+        }
+
+        static fetchWithAuth(url, options = {}) {
+            options.headers = {
+                ...this.getAuthHeader(),
+                ...options.headers
+            };
+            return fetch(url, options);
+        }
+    }
+
+    document.getElementById('userInfoButton').addEventListener('click', function() {
+        const token = Auth.getToken();
+        if (!token) {
+            alert('로그인이 필요합니다.');
+            window.location.href = '/login?redirectURL=/info';
+        } else {
+            // info 페이지로 이동할 때 헤더에 토큰을 넣어 요청
+            fetch('/api/user-info', {
+                headers: Auth.getAuthHeader(),
+                method: 'GET'
+            }).then(response => {
+                if (response.ok) {
+                    window.location.href = '/info';
+                } else if (response.status === 401) {
+                    alert('로그인이 필요합니다.');
+                    window.location.href = '/login?redirectURL=/info';
+                } else {
+                    alert('접근 권한이 없습니다.');
+                }
+            });
+        }
+    });
+</script>
 </body>
 </html>

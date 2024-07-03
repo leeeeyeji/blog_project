@@ -61,14 +61,39 @@
             margin-bottom: 15px;
         }
     </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const loginForm = document.querySelector('form');
+
+            loginForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                const loginId = document.getElementById('loginId').value;
+                const password = document.getElementById('password').value;
+
+                fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ loginId, password })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.redirectURL) {
+                            window.location.href = data.redirectURL;
+                        } else {
+                            alert('로그인 실패! 아이디 혹은 비밀번호를 확인해주세요!');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            });
+        });
+    </script>
 </head>
 <body>
 <div class="container">
     <h1>로그인</h1>
-    <form th:action="@{/api/login}" method="post">
-        <div th:if="${param.error}" class="error">
-            존재하지 않는 아이디거나 틀린 비밀번호입니다.
-        </div>
+    <form action="#" method="post">
         <div class="form-group">
             <label for="loginId">아이디 :</label>
             <input type="text" id="loginId" name="loginId" required>

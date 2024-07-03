@@ -1,6 +1,7 @@
 package org.example.blog_project.likes;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.blog_project.member.Member;
@@ -20,4 +21,10 @@ public class Likes {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
+
+    @Builder
+    public Likes(Member member, Post post) {
+        this.member = member;
+        this.post = post;
+    }
 }

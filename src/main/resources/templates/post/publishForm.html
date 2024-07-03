@@ -1,10 +1,98 @@
+
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Publish Post</title>
+    <title>출간하기</title>
     <!-- Include jQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            box-sizing: border-box;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="file"],
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-group textarea {
+            height: 150px;
+            resize: vertical;
+        }
+        .form-group input[type="file"] {
+            padding: 5px;
+        }
+        .form-group input[type="checkbox"] {
+            margin-right: 5px;
+        }
+        .form-group.inline {
+            display: flex;
+            align-items: center;
+        }
+        .form-group.inline label {
+            margin-bottom: 0;
+            margin-right: 10px;
+        }
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .actions button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .actions button:hover {
+            background-color: #45a049;
+        }
+        .actions .cancel {
+            background-color: #FF5252;
+        }
+        .actions .cancel:hover {
+            background-color: #ff3333;
+        }
+    </style>
     <script th:inline="javascript">
         /*<![CDATA[*/
         $(document).ready(function () {
@@ -42,10 +130,11 @@
                     processData: false,
                     contentType: false, // 이 부분을 false로 설정하면 브라우저가 boundary를 포함한 적절한 Content-Type을 설정합니다.
                     success: function (data) {
+                        // 서버가 반환한 URL로 리다이렉트
                         window.location.href = data;
                     },
                     error: function (xhr, status, error) {
-                        alert('Error: ' + xhr.responseText || status);
+                        alert('Error: ' + (xhr.responseText || status));
                     }
                 });
             });
@@ -53,40 +142,40 @@
 
         /*]]>*/
     </script>
-
-
 </head>
 <body>
-<div>
-    <h2>Publish Your Post</h2>
+<div class="container">
+    <h1>출간하기</h1>
     <form id="publishForm" enctype="multipart/form-data">
-
-        <div>
-            <label for="introduce">Introduction:</label>
+        <div class="form-group">
+            <label for="introduce">글 소개:</label>
             <input type="text" id="introduce" name="introduce" required/>
         </div>
 
-        <div>
-            <label for="isHide">Hide Post:</label>
+        <div class="form-group inline">
+            <label for="isHide">숨김 글:</label>
             <input type="checkbox" id="isHide" name="isHide"/>
         </div>
 
-        <div>
-            <label for="series">Series:</label>
+        <div class="form-group">
+            <label for="series">시리즈:</label>
             <input type="text" id="series" name="series"/>
         </div>
 
-        <div>
-            <label for="postUrl">Post URL:</label>
+        <div class="form-group">
+            <label for="postUrl">URL(영어, 숫자로 구성):</label>
             <input type="text" id="postUrl" name="postUrl" required/>
         </div>
 
-        <div>
-            <label for="file">Main Image:</label>
+        <div class="form-group">
+            <label for="file">썸네일 이미지:</label>
             <input type="file" id="file" name="file"/>
         </div>
 
-        <button type="submit">Publish Post</button>
+        <div class="actions">
+            <button type="submit">출간하기</button>
+            <button type="button" class="cancel" onclick="window.location.href='/'">취소</button>
+        </div>
     </form>
 </div>
 </body>

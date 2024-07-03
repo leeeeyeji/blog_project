@@ -1,7 +1,7 @@
-package org.example.blog_project;
+package org.example.blog_project.config;
 
 import jakarta.servlet.Filter;
-import org.example.blog_project.member.filter.LoginCheckFilter;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -42,12 +42,12 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations(mainUploadPath);
     }
 
-    @Bean
-    public FilterRegistrationBean logFilter(){
-        FilterRegistrationBean<Filter> filterRegistrationBean = new FilterRegistrationBean<>();
-        filterRegistrationBean.setFilter(new LoginCheckFilter());
-        filterRegistrationBean.setOrder(1);
-        filterRegistrationBean.addUrlPatterns("/*");
-        return filterRegistrationBean;
-    }
+//    @Bean
+//    public FilterRegistrationBean logFilter(){
+//        FilterRegistrationBean<Filter> filterRegistrationBean = new FilterRegistrationBean<>();
+//        filterRegistrationBean.setFilter(new LoginCheckFilter());
+//        filterRegistrationBean.setOrder(1);
+//        filterRegistrationBean.addUrlPatterns("/*");
+//        return filterRegistrationBean;
+//    }
 }

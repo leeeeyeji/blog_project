@@ -1,5 +1,6 @@
 package org.example.blog_project.post;
 
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,4 +19,7 @@ public interface PostRepository extends JpaRepository<Post,Long> {
     List<Post> findNextPost(@Param("memberId") Long memberId, @Param("postId") Long postId);
 
     Optional<Post> findByPostUrl(String url);
+
+    List<Post> findAllByIsTemp(boolean isTemp);
+
 }

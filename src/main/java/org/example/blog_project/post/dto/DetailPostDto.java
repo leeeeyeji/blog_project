@@ -17,6 +17,6 @@ public class DetailPostDto {
     private String series;
     private String content;
     private String profileImageUrl;
-    private Long prePostId;
-    private Long nextPostId;
+    private String prePostUrl;
+    private String nextPostUrl;
 }

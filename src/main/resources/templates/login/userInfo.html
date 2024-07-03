@@ -5,6 +5,7 @@
     <title>User Info</title>
     <link rel="stylesheet" href="/css/style.css">
     <style>
+        /* 기존 스타일 유지 */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
@@ -233,8 +234,57 @@
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
+    <script type="module">
+        class Auth {
+            static getToken() {
+                // 쿠키에서 토큰 읽기
+                console.log("document.cookie:", document.cookie); // 쿠키 확인용
+                const cookieName = 'jwtToken';
+                const cookie = document.cookie.split('; ').find(row => row.startsWith(cookieName));
+                console.log("Found cookie:", cookie); // 쿠키 찾기 확인용
+                return cookie ? cookie.split('=')[1] : null;
+            }
+
+            static getAuthHeader() {
+                const token = this.getToken();
+                console.log("Token:", token); // 토큰 확인용
+                return token ? { 'Authorization': 'Bearer ' + token } : {};
+            }
+
+            static fetchWithAuth(url, options = {}) {
+                options.headers = {
+                    ...this.getAuthHeader(),
+                    ...options.headers
+                };
+                return fetch(url, options);
+            }
+        }
+
         $(document).ready(function() {
+            // 페이지 로드 시 사용자 정보 가져오기
+            Auth.fetchWithAuth('/api/user-info')
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else if (response.status === 401) {
+                        alert('로그인이 필요합니다.');
+                        window.location.href = '/login?redirectURL=' + window.location.pathname;
+                    } else {
+                        alert('사용자 정보를 가져오는데 실패했습니다.');
+                    }
+                })
+                .then(data => {
+                    if (data) {
+                        $('#userName').text(data.name);
+                        $('#profileImage').attr('src', '/profile_images/' + data.profileImageUrl);
+                        $('#blogName').text(data.blogName);
+                        $('#email').text(data.email);
+                        $('#commentPush').prop('checked', data.allowCommentPush);
+                        $('#updatePush').prop('checked', data.allowUpdatePush);
+                        $('#removeImage').data('filename', data.profileImageUrl);
+                    }
+                });
+
             let emailChecked = false;
 
             function validateEmail() {
@@ -252,47 +302,50 @@
             $('#profileImageInput').on('change', function(event) {
                 var formData = new FormData($('#profileImageUploadForm')[0]);
 
-                $.ajax({
-                    url: '/api/info/profile-image',
-                    type: 'PUT',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function(response) {
-                        alert('프로필 이미지가 업데이트되었습니다.');
-                        location.reload(); // Reload the page
-                    },
-                    error: function(xhr, status, error) {
-                        if (xhr.status === 401) {
-                            alert('로그인이 필요합니다.');
-                            window.location.href = '/login?redirectURL=' + window.location.pathname;
+                Auth.fetchWithAuth('/api/info/profile-image', {
+                    method: 'PUT',
+                    body: formData
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.text(); // 서버에서 반환된 이미지 경로
                         } else {
-                            alert('프로필 이미지 업데이트에 실패했습니다.');
+                            if (response.status === 401) {
+                                alert('로그인이 필요합니다.');
+                                window.location.href = '/login?redirectURL=' + window.location.pathname;
+                            } else {
+                                alert('프로필 이미지 업데이트에 실패했습니다.');
+                            }
                         }
-                    }
-                });
+                    })
+                    .then(imagePath => {
+                        if (imagePath) {
+                            $('#profileImage').attr('src', imagePath + '?' + new Date().getTime()); // 캐시 방지용
+                            location.reload(); // 페이지 새로고침
+                        }
+                    });
             });
 
             $('#removeImage').on('click', function() {
                 var fileName = $(this).data('filename');
-                $.ajax({
-                    url: '/api/info/profile-image?fileName=' + encodeURIComponent(fileName),
-                    type: 'DELETE',
-                    success: function(response) {
-                        alert('프로필 이미지가 제거되었습니다.');
-                        location.reload(); // Reload the page
-                    },
-                    error: function(xhr, status, error) {
-                        if (xhr.status === 404) {
-                            alert('프로필 이미지가 이미 제거되었습니다.');
-                        } else if (xhr.status === 401) {
-                            alert('로그인이 필요합니다.');
-                            window.location.href = '/login?redirectURL=' + window.location.pathname;
+                Auth.fetchWithAuth('/api/info/profile-image?fileName=' + encodeURIComponent(fileName), {
+                    method: 'DELETE'
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('프로필 이미지가 제거되었습니다.');
+                            location.reload(); // Reload the page
                         } else {
-                            alert('프로필 이미지 제거에 실패했습니다.');
+                            if (response.status === 404) {
+                                alert('프로필 이미지가 이미 제거되었습니다.');
+                            } else if (response.status === 401) {
+                                alert('로그인이 필요합니다.');
+                                window.location.href = '/login?redirectURL=' + window.location.pathname;
+                            } else {
+                                alert('프로필 이미지 제거에 실패했습니다.');
+                            }
                         }
-                    }
-                });
+                    });
             });
 
             $(document).on('click', '#editBlogName', function() {
@@ -307,19 +360,19 @@
 
                 $(document).on('click', '#saveBlogName', function() {
                     const newBlogName = $('#newBlogName').val();
-                    $.ajax({
-                        url: '/api/info/blog-name?blogName=' + encodeURIComponent(newBlogName),
-                        type: 'PUT',
-                        success: function() {
-                            $('#blogNameContainer').html(
-                                `<span id="blogName">${newBlogName}</span>` +
-                                `<a href="#" id="editBlogName" style="margin-left: 10px;">수정</a>`
-                            );
-                        },
-                        error: function() {
-                            alert('블로그 이름 수정에 실패했습니다.');
-                        }
-                    });
+                    Auth.fetchWithAuth('/api/info/blog-name?blogName=' + encodeURIComponent(newBlogName), {
+                        method: 'PUT'
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                $('#blogNameContainer').html(
+                                    `<span id="blogName">${newBlogName}</span>` +
+                                    `<a href="#" id="editBlogName" style="margin-left: 10px;">수정</a>`
+                                );
+                            } else {
+                                alert('블로그 이름 수정에 실패했습니다.');
+                            }
+                        });
                 });
 
                 $(document).on('click', '#cancelEdit', function() {
@@ -339,23 +392,23 @@
             });
 
             function updateNotificationSettings(endpoint, value) {
-                $.ajax({
-                    url: '/api/info/' + endpoint,
-                    type: 'PUT',
-                    data: JSON.stringify({ value: value }),
-                    contentType: 'application/json',
-                    success: function(response) {
-                        alert('알림 설정이 업데이트되었습니다.');
-                    },
-                    error: function(xhr, status, error) {
-                        if (xhr.status === 401) {
-                            alert('로그인이 필요합니다.');
-                            window.location.href = '/login?redirectURL=' + window.location.pathname;
+                Auth.fetchWithAuth('/api/info/' + endpoint, {
+                    method: 'PUT',
+                    body: JSON.stringify({ value: value }),
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('알림 설정이 업데이트되었습니다.');
                         } else {
-                            alert('알림 설정 업데이트에 실패했습니다.');
+                            if (response.status === 401) {
+                                alert('로그인이 필요합니다.');
+                                window.location.href = '/login?redirectURL=' + window.location.pathname;
+                            } else {
+                                alert('알림 설정 업데이트에 실패했습니다.');
+                            }
                         }
-                    }
-                });
+                    });
             }
 
             // 모달 열기
@@ -372,24 +425,27 @@
             $('#confirmDelete').on('click', function() {
                 var password = $('#passwordInput').val();
                 if (password) {
-                    $.ajax({
-                        url: '/api/delete-account?password=' + encodeURIComponent(password),
-                        type: 'DELETE',
-                        success: function(response) {
-                            alert(response);
-                            if (response === '회원 탈퇴 완료') {
+                    Auth.fetchWithAuth('/api/delete-account?password=' + encodeURIComponent(password), {
+                        method: 'DELETE'
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                return response.text();
+                            } else {
+                                if (response.status === 401) {
+                                    alert('로그인이 필요합니다.');
+                                    window.location.href = '/login?redirectURL=' + window.location.pathname;
+                                } else {
+                                    alert('회원 탈퇴에 실패했습니다.');
+                                }
+                            }
+                        })
+                        .then(text => {
+                            if (text === '회원 탈퇴 완료') {
+                                alert(text);
                                 window.location.href = '/login';
                             }
-                        },
-                        error: function(xhr, status, error) {
-                            if (xhr.status === 401) {
-                                alert('로그인이 필요합니다.');
-                                window.location.href = '/login?redirectURL=' + window.location.pathname;
-                            } else {
-                                alert('회원 탈퇴에 실패했습니다.');
-                            }
-                        }
-                    });
+                        });
                 }
             });
 
@@ -431,19 +487,19 @@
                         alert('이메일을 올바르게 입력하고 중복 확인을 해주세요.');
                         return;
                     }
-                    $.ajax({
-                        url: '/api/info/email?newEmail=' + encodeURIComponent(newEmail),
-                        type: 'PUT',
-                        success: function() {
-                            $('#emailContainer').html(
-                                `<span id="email">${newEmail}</span>` +
-                                `<a href="#" id="editEmail" style="margin-left: 10px;">수정</a>`
-                            );
-                        },
-                        error: function() {
-                            alert('이메일 수정에 실패했습니다.');
-                        }
-                    });
+                    Auth.fetchWithAuth('/api/info/email?newEmail=' + encodeURIComponent(newEmail), {
+                        method: 'PUT'
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                $('#emailContainer').html(
+                                    `<span id="email">${newEmail}</span>` +
+                                    `<a href="#" id="editEmail" style="margin-left: 10px;">수정</a>`
+                                );
+                            } else {
+                                alert('이메일 수정에 실패했습니다.');
+                            }
+                        });
                 });
 
                 $(document).on('click', '#cancelEditEmail', function() {
@@ -458,42 +514,42 @@
 </head>
 <body>
 <div class="container">
-    <h1 th:text="${userInfo.name}"></h1>
+    <h1 id="userName"></h1>
     <div class="profile-image">
-        <img th:src="@{'/profile_images/' + ${userInfo.profileImageUrl}}">
+        <img id="profileImage" src="#">
         <form id="profileImageUploadForm" enctype="multipart/form-data">
             <div class="buttons">
                 <input type="file" id="profileImageInput" name="profileImage" accept="image/*" style="display:none;">
                 <button type="button" onclick="document.getElementById('profileImageInput').click();">이미지 업로드</button>
-                <button type="button" id="removeImage" th:attr="data-filename=${userInfo.profileImageUrl}">이미지 제거</button>
+                <button type="button" id="removeImage">이미지 제거</button>
             </div>
         </form>
     </div>
     <div class="info-card">
         <label>블로그 이름:</label>
         <div id="blogNameContainer" style="flex-grow: 1; display: flex; justify-content: space-between;">
-            <span id="blogName" style="flex-grow: 1; text-align: center;" th:text="${userInfo.blogName}"></span>
+            <span id="blogName" style="flex-grow: 1; text-align: center;"></span>
             <a href="#" id="editBlogName" style="margin-left: 10px;">수정</a>
         </div>
     </div>
     <div class="info-card center">
         <label>Email:</label>
         <div id="emailContainer" style="flex-grow: 1; display: flex; justify-content: space-between;">
-            <span id="email" style="flex-grow: 1; text-align: center;" th:text="${userInfo.email}"></span>
+            <span id="email" style="flex-grow: 1; text-align: center;"></span>
             <a href="#" id="editEmail" style="margin-left: 10px;">수정</a>
         </div>
     </div>
     <div class="info-card">
         <label>댓글 이메일 수신 :</label>
         <div class="toggle">
-            <input type="checkbox" id="commentPush" th:checked="${userInfo.allowCommentPush}">
+            <input type="checkbox" id="commentPush">
             <label for="commentPush"></label>
         </div>
     </div>
     <div class="info-card">
         <label>업데이트 이메일 수신 :</label>
         <div class="toggle">
-            <input type="checkbox" id="updatePush" th:checked="${userInfo.allowUpdatePush}">
+            <input type="checkbox" id="updatePush">
             <label for="updatePush"></label>
         </div>
     </div>

@@ -3,10 +3,9 @@ package org.example.blog_project.post;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.blog_project.member.UserContext;
-import org.example.blog_project.post.dto.CreatePostResDto;
-import org.example.blog_project.post.dto.DetailPostDto;
-import org.example.blog_project.post.dto.PostForm;
-import org.example.blog_project.post.dto.PublishForm;
+import org.example.blog_project.member.jwt.JwtGenerator;
+import org.example.blog_project.member.jwt.JwtProvider;
+import org.example.blog_project.post.dto.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,13 +17,20 @@ import java.net.URLDecoder;
 import java.util.List;
 
 
+
 @Controller
 @RequiredArgsConstructor
 @Slf4j
 public class PostController {
     private final PostService postService;
-
-
+    private final JwtGenerator jwtGenerator;
+    private final JwtProvider jwtProvider;
+    private static String getToken(String auth){
+        if (auth == null || !auth.startsWith("Bearer ")){
+            throw new RuntimeException("잘못된 토큰");
+        }
+        return auth.substring(7);
+    }
     @GetMapping("/postform")
     public String postForm(){
         return "/post/createPostForm";
@@ -38,15 +44,13 @@ public class PostController {
 
     @PostMapping("/api/posts")
     @ResponseBody
-    public CreatePostResDto createPost(@RequestPart(name = "postForm") PostForm postForm,
-                             @RequestParam(name = "files",required = false) List<MultipartFile> files){
-       log.info(postForm.getTitle());
-       log.info(""+postForm.getTags()[0]);
-       log.info(postForm.getContent());
-       log.info(""+postForm.getIsTemp());
-       log.info(""+files);
+    public CreatePostResDto createPost(@RequestHeader(name = "Authorization") String auth,
+                                       @RequestPart(name = "postForm") PostForm postForm,
+                                       @RequestParam(name = "files",required = false) List<MultipartFile> files){
 
-        Long memberId = Long.parseLong(UserContext.getUserId());
+
+        String token = getToken(auth);
+        Long memberId = jwtProvider.getMemberIdFromToken(token);
         CreatePostResDto result = postService.createPost(memberId, postForm, files);
 
         log.info("" + result.getPostId() + result.getIsTemp());
@@ -58,33 +62,44 @@ public class PostController {
     }
 
     @PostMapping("/api/posts/publish")
-    public String publishPost(@RequestPart(name = "publishForm")PublishForm form,
+    @ResponseBody
+    public String publishPost(@RequestHeader(name = "Authorization") String auth,
+                              @RequestPart(name = "publishForm")PublishForm form,
                               @RequestParam(name = "file",required = false) MultipartFile file) {
-
-        String url = postService.publishPost(form, file);
-        return "redirect:"+url;
+        String token = getToken(auth);
+        Long memberId = jwtProvider.getMemberIdFromToken(token);
+        String url = postService.publishPost(form, file,memberId);
+        return url;
     }
 
     @PutMapping("/api/posts/{postId}")
-    public ResponseEntity<String> updatePost(@RequestBody PostForm form, @PathVariable Long postId ){
-        String result = postService.updatePost(form, postId);
+    public ResponseEntity<String> updatePost(@RequestHeader(name = "Authorization") String auth,
+                                             @RequestPart(name = "postForm") PostForm form,
+                                             @RequestParam(name = "files",required = false) List<MultipartFile> files,
+                                             @PathVariable Long postId ){
+        String token = getToken(auth);
+        Long memberId = jwtProvider.getMemberIdFromToken(token);
+        String result = postService.updatePost(form, postId, files, memberId);
         return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/api/posts/{postId}")
-    public ResponseEntity<String> deletePost(@PathVariable Long postId){
-        String result = postService.deletePost(postId);
+    public ResponseEntity<String> deletePost(@RequestHeader(name = "Authorization") String auth,
+                                             @PathVariable Long postId){
+        String token = getToken(auth);
+        Long memberId = jwtProvider.getMemberIdFromToken(token);
+        String result = postService.deletePost(postId,memberId);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/@{loginId}/{encodedTitle}")
-    public String getDetailPost(
-                                @PathVariable String loginId,
+    public String getDetailPost(@PathVariable String loginId,
                                 @PathVariable String encodedTitle,
                                 Model model) throws UnsupportedEncodingException {
 
         // URL 디코딩
         String decodedTitle = URLDecoder.decode(encodedTitle, "UTF-8");
+        log.info("decodedTitle: " + decodedTitle);
 
         // 게시글 상세 정보를 데이터베이스에서 조회
         DetailPostDto post = postService.getDetailPost(loginId, decodedTitle);
@@ -96,6 +111,19 @@ public class PostController {
         return "post/postDetail"; // 뷰 이름
     }
 
+    @GetMapping("/api/posts?filter={filter}")
+    public  ResponseEntity<List<PostDto>> getAllPosts(@RequestParam int filter){
+
+        //TODO 모든 게시물 조회
+
+        return null;
+    }
+
+    @GetMapping("/api/posts/temp")
+    public ResponseEntity<List<TempPostDto>> getAllTempPosts(){
+        List<TempPostDto> allTempPosts = postService.getAllTempPosts();
+        return ResponseEntity.ok(allTempPosts);
+    }
 
 
 }
