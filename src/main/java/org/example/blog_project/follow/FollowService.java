@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.blog_project.follow.dto.FollowDto;
 import org.example.blog_project.member.Member;
 import org.example.blog_project.member.MemberRepository;
-import org.example.blog_project.post.Post;
 import org.example.blog_project.post.PostRepository;
 import org.springframework.stereotype.Service;
 
@@ -32,13 +31,13 @@ public class FollowService {
             throw new RuntimeException("자기자신 팔로우 불가");
         }
         //중복 팔로우 불가
-        if (followRepository.findFollowByFrom_userAAndTo_user(from_user,to_user).isPresent()){
+        if (followRepository.findFollowByFromUserAndToUser(from_user,to_user).isPresent()){
             throw new RuntimeException("이미 팔로우한 사용자");
         }
 
         Follow follow = Follow.builder()
-                .from_user(from_user)
-                .to_user(to_user)
+                .fromUser(from_user)
+                .toUser(to_user)
                 .build();
 
         followRepository.save(follow);
@@ -50,7 +49,7 @@ public class FollowService {
                 .orElseThrow(() -> new RuntimeException("존재하지않는 사용자"));
         Member to_user = memberRepository.findById(to_userMemberId)
                 .orElseThrow(() -> new RuntimeException("존재하지않는 사용자"));
-        Follow follow = followRepository.findFollowByFrom_userAAndTo_user(to_user, from_user)
+        Follow follow = followRepository.findFollowByFromUserAndToUser(to_user, from_user)
                 .orElseThrow(() -> new RuntimeException("존재하지는 팔로우"));
         followRepository.delete(follow);
         return "팔로우 삭제 성공";
@@ -59,11 +58,11 @@ public class FollowService {
     public List<FollowDto> getAllFollows(Long from_userMemberId){
         Member from_user = memberRepository.findById(from_userMemberId)
                 .orElseThrow(() -> new RuntimeException("존재하지않는 사용자"));
-        List<Follow> allByFromUser = followRepository.findAllByFrom_user(from_user);
+        List<Follow> allByFromUser = followRepository.findAllByFromUser(from_user);
 
         return allByFromUser.stream().map(follow -> new FollowDto(
-                follow.getTo_user().getName(),
-                follow.getTo_user().getMemberId()
+                follow.getToUser().getName(),
+                follow.getToUser().getMemberId()
         )).collect(Collectors.toList());
     }
 }
