@@ -15,15 +15,15 @@ public class Follow {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "from_user")
-    private Member from_user;
+    private Member fromUser;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "to_user")
-    private Member to_user;
+    private Member toUser;
 
     @Builder
-    public Follow(Member from_user, Member to_user) {
-        this.from_user = from_user;
-        this.to_user = to_user;
+    public Follow(Member fromUser, Member toUser) {
+        this.fromUser = fromUser;
+        this.toUser = toUser;
     }
 }
