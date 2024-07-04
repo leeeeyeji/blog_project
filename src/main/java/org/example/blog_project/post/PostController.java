@@ -63,13 +63,13 @@ public class PostController {
 
     @PostMapping("/api/posts/publish")
     @ResponseBody
-    public String publishPost(@RequestHeader(name = "Authorization") String auth,
+    public ResponseEntity<String> publishPost(@RequestHeader(name = "Authorization") String auth,
                               @RequestPart(name = "publishForm")PublishForm form,
                               @RequestParam(name = "file",required = false) MultipartFile file) {
         String token = getToken(auth);
         Long memberId = jwtProvider.getMemberIdFromToken(token);
         String url = postService.publishPost(form, file,memberId);
-        return url;
+        return ResponseEntity.ok(url);
     }
 
     @PutMapping("/api/posts/{postId}")
@@ -111,12 +111,13 @@ public class PostController {
         return "post/postDetail"; // 뷰 이름
     }
 
-    @GetMapping("/api/posts?filter={filter}")
-    public  ResponseEntity<List<PostDto>> getAllPosts(@RequestParam int filter){
 
-        //TODO 모든 게시물 조회
+    @GetMapping("/api/posts")
+    public  ResponseEntity<List<PostDto>> getAllPosts(@RequestParam(required = false,defaultValue = "0") int filter){
+        //filter = 0 : 최신순, =1 : 인기순
+        List<PostDto> allPosts = postService.getAllPosts(filter);
 
-        return null;
+        return ResponseEntity.ok(allPosts);
     }
 
     @GetMapping("/api/posts/temp")

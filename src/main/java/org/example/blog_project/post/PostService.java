@@ -230,10 +230,23 @@ public class PostService {
         return nextPosts.isEmpty() ? Optional.empty() : Optional.of(nextPosts.get(0));
     }
 
-    //TODO 모든 게시글 조회
-    public List<Post> getAllPosts(){
+    //filter = 0 : 최신순, =1 : 인기순
+    public List<PostDto> getAllPosts(int filter){
         List<Post> allPosts = postRepository.findAll();
-        return null;
+        if (filter == 0) {
+            allPosts = postRepository.findAllPostsOrderByCreatedAtDesc();
+        } else {
+            allPosts = postRepository.findAllPostsOrderByLikesDesc();
+        }
+        return allPosts.stream().map(post -> new PostDto(
+                post.getTitle(),
+                post.getIntroduce(),
+                post.getCreatedAt(),
+                post.getCommentList().size(),
+                post.getMember().getName(),
+                post.getLikesList().size(),
+                post.getMainImageUrl()
+        )).collect(Collectors.toList());
     }
     public List<TempPostDto> getAllTempPosts(){
         List<Post> allByIsTemp = postRepository.findAllByIsTemp(true);

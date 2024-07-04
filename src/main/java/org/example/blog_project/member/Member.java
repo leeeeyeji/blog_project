@@ -63,10 +63,10 @@ public class Member {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Likes> likesList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "followee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "from_user", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Follow> followingList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "to_user", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Follow> followerList = new ArrayList<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)

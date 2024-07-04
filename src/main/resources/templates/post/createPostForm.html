@@ -83,6 +83,85 @@
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        class Auth {
+            static getToken() {
+                const cookieName = 'jwtToken';
+                const cookie = document.cookie.split('; ').find(row => row.startsWith(cookieName + '='));
+                return cookie ? cookie.split('=')[1] : null;
+            }
+
+            static getAuthHeader() {
+                const token = this.getToken();
+                console.log('Token:', token); // Log token for debugging
+                return token ? { 'Authorization': 'Bearer ' + token } : {};
+            }
+
+            static fetchWithAuth(url, options = {}) {
+                if (!options.headers) {
+                    options.headers = {};
+                }
+                Object.assign(options.headers, this.getAuthHeader());
+                console.log('Request Headers:', options.headers); // Debugging: Log headers to console
+                return fetch(url, options);
+            }
+        }
+
+            $(document).ready(function() {
+            $('#postForm').on('submit', function(event) {
+                event.preventDefault();
+
+                var formData = new FormData();
+
+                // Append JSON for the postForm fields excluding the file
+                var postForm = {
+                    title: $('#title').val(),
+                    tags: $('#tags').val().split(',').map(function(tag) { return tag.trim(); }),
+                    content: $('#content').val(),
+                    isTemp: $('#isTemp').is(':checked')
+                };
+
+                // Add the postForm JSON to FormData
+                formData.append('postForm', new Blob([JSON.stringify(postForm)], {type: 'application/json'}));
+
+                // Check if files are selected and append only if present
+                var files = $('#files')[0].files;
+                if (files.length > 0) {
+                    for (var i = 0; i < files.length; i++) {
+                        formData.append('files', files[i]);
+                    }
+                }
+
+                // Send the AJAX request
+                Auth.fetchWithAuth('/api/posts', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        } else if (response.status === 401) {
+                            throw new Error('Unauthorized: ' + response.status);
+                        } else {
+                            throw new Error('Error: ' + response.status);
+                        }
+                    })
+                    .then(response => {
+                        // 서버가 리다이렉트를 요구하는 경우
+                        if (!response.isTemp) { // Temporary Redirect
+                            window.location.href = '/publishForm?postId=' + response.postId;
+                        } else {
+                            // 기본 홈 페이지로 리다이렉트
+                            window.location.href = '/';
+                        }
+                    })
+                    .catch(error => {
+                        alert('Error: ' + error.message);
+                    });
+            });
+        });
+    </script>
+
 </head>
 <body>
 <div class="container">
@@ -114,64 +193,5 @@
         </div>
     </form>
 </div>
-
-<script>
-    $(document).ready(function() {
-        $('#postForm').on('submit', function(event) {
-            event.preventDefault();
-
-            var formData = new FormData();
-
-            // Append JSON for the postForm fields excluding the file
-            var postForm = {
-                title: $('#title').val(),
-                tags: $('#tags').val().split(',').map(function(tag) { return tag.trim(); }),
-                content: $('#content').val(),
-                isTemp: $('#isTemp').is(':checked')
-            };
-
-            // Add the postForm JSON to FormData
-            formData.append('postForm', new Blob([JSON.stringify(postForm)], {type: 'application/json'}));
-
-            // Check if files are selected and append only if present
-            var files = $('#files')[0].files;
-            if (files.length > 0) {
-                for (var i = 0; i < files.length; i++) {
-                    formData.append('files', files[i]);
-                }
-            }
-
-            // Iterate through FormData to see its contents
-            for (var pair of formData.entries()) {
-                console.log(pair[0]+ ', ' + pair[1]);
-            }
-
-
-            // Send the AJAX request
-            $.ajax({
-                url: '/api/posts',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(response) {
-                    // 서버가 리다이렉트를 요구하는 경우
-                    if (response.isTemp ===false) { // Temporary Redirect
-                        window.location.href = '/publishForm?postId=' + response.postId;
-                    } else {
-                        // 기본 홈 페이지로 리다이렉트
-                        window.location.href = '/';
-                    }
-                },
-                error: function(xhr) {
-                    alert('Error: ' + xhr.statusText);
-                }
-            });
-        });
-    });
-
-
-
-</script>
 </body>
 </html>

@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>출간하기</title>
     <!-- Include jQuery -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="/css/style.css">
     <style>
         body {
@@ -93,15 +92,34 @@
             background-color: #ff3333;
         }
     </style>
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        $(document).ready(function () {
+    <script type="module">
+        class Auth {
+            static getToken() {
+                const cookieName = 'jwtToken';
+                const cookie = document.cookie.split('; ').find(row => row.startsWith(cookieName));
+                return cookie ? cookie.split('=')[1] : null;
+            }
 
+            static getAuthHeader() {
+                const token = this.getToken();
+                return token ? { 'Authorization': 'Bearer ' + token } : {};
+            }
+
+            static fetchWithAuth(url, options = {}) {
+                options.headers = {
+                    ...this.getAuthHeader(),
+                    ...options.headers
+                };
+                return fetch(url, options);
+            }
+        }
+
+        $(document).ready(function () {
             var urlParams = new URLSearchParams(window.location.search);
             var postId = urlParams.get('postId');
 
             $('#publishForm').submit(function (event) {
-                event.preventDefault(); // 기본 폼 제출 방지
+                event.preventDefault();
 
                 var formData = new FormData();
                 var publishForm = {
@@ -112,35 +130,33 @@
                     postUrl: $('#postUrl').val()
                 };
 
-                formData.append('publishForm', new Blob([JSON.stringify(publishForm)], {type: 'application/json'}));
-
-                // FormData 내용을 콘솔에 출력
-                for (let [key, value] of formData.entries()) {
-                    console.log(`${key}: ${value}`);
-                }
+                formData.append('publishForm', new Blob([JSON.stringify(publishForm)], { type: 'application/json' }));
 
                 if ($('#file')[0].files.length > 0) {
                     formData.append('file', $('#file')[0].files[0]);
                 }
 
-                $.ajax({
-                    url: '/api/posts/publish',
-                    type: 'POST',
-                    data: formData,
+                Auth.fetchWithAuth('/api/posts/publish', {
+                    method: 'POST',
+                    body: formData,
                     processData: false,
-                    contentType: false, // 이 부분을 false로 설정하면 브라우저가 boundary를 포함한 적절한 Content-Type을 설정합니다.
-                    success: function (data) {
-                        // 서버가 반환한 URL로 리다이렉트
+                    contentType: false
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.text();
+                        } else {
+                            throw new Error('Error: ' + response.status);
+                        }
+                    })
+                    .then(data => {
                         window.location.href = data;
-                    },
-                    error: function (xhr, status, error) {
-                        alert('Error: ' + (xhr.responseText || status));
-                    }
-                });
+                    })
+                    .catch(error => {
+                        alert(error);
+                    });
             });
         });
-
-        /*]]>*/
     </script>
 </head>
 <body>

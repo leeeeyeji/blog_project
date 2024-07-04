@@ -18,6 +18,12 @@ public interface PostRepository extends JpaRepository<Post,Long> {
     @Query("SELECT p FROM Post p WHERE p.member.memberId = :memberId AND p.postId > :postId ORDER BY p.postId ASC")
     List<Post> findNextPost(@Param("memberId") Long memberId, @Param("postId") Long postId);
 
+
+    @Query("SELECT p FROM Post p ORDER BY p.createdAt DESC")
+    List<Post> findAllPostsOrderByCreatedAtDesc();
+
+    @Query("SELECT p FROM Post p ORDER BY SIZE(p.likesList) DESC")
+    List<Post> findAllPostsOrderByLikesDesc();
     Optional<Post> findByPostUrl(String url);
 
     List<Post> findAllByIsTemp(boolean isTemp);
