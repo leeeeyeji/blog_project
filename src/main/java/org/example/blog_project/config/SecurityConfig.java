@@ -14,6 +14,7 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 
 @Configuration
 @RequiredArgsConstructor
@@ -37,7 +38,9 @@ public class SecurityConfig {
             "/login",
             "/register",
             "/info",
-            "/postform"
+            "/postform",
+            "/publishForm",
+            "/@**"
 
     };
 
@@ -53,6 +56,7 @@ public class SecurityConfig {
                 });
         http.authorizeHttpRequests(auth->{
             auth.requestMatchers(AUTH_WHITELIST).permitAll();
+            auth.requestMatchers(new RegexRequestMatcher("^/@[\\w-]+/.*$", null)).permitAll();
             auth.anyRequest().authenticated();
         }).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

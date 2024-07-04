@@ -2,6 +2,7 @@ package org.example.blog_project.post.dto;
 
 import lombok.Builder;
 import lombok.Data;
+import org.example.blog_project.post_image.PostImage;
 import org.example.blog_project.post_tag.PostTag;
 
 import java.time.LocalDate;
@@ -19,4 +20,5 @@ public class DetailPostDto {
     private String profileImageUrl;
     private String prePostUrl;
     private String nextPostUrl;
+    private List<PostImage> postImageList;
 }

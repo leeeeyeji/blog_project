@@ -31,6 +31,8 @@ public class JwtAuthenticationFilter extends GenericFilter {
                 //스프링시큐리티의 인증 컨텍스트에 설정
                 //현재 스레드의 보안컨텍스트에 authentication을 설정해 이후의 요청 처리과정에서 현재사용자가 인증된 사용자로 간주됨
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                log.info("Authenticated user: {}", authentication.getName());
             }
         }catch (Exception e){
             log.info(e.getMessage());

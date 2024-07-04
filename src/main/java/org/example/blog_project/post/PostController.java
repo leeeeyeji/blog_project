@@ -2,7 +2,6 @@ package org.example.blog_project.post;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.blog_project.member.UserContext;
 import org.example.blog_project.member.jwt.JwtGenerator;
 import org.example.blog_project.member.jwt.JwtProvider;
 import org.example.blog_project.post.dto.*;
@@ -23,7 +22,6 @@ import java.util.List;
 @Slf4j
 public class PostController {
     private final PostService postService;
-    private final JwtGenerator jwtGenerator;
     private final JwtProvider jwtProvider;
     private static String getToken(String auth){
         if (auth == null || !auth.startsWith("Bearer ")){
