@@ -250,8 +250,8 @@ public class PostService {
             return new PostDto(
                     post.getPostId(),
                     post.getTitle(),
-                    post.getIntroduce(),
                     post.getPostUrl(),
+                    post.getIntroduce(),
                     post.getCreatedAt(),
                     post.getCommentList().size(),
                     post.getMember().getName(),
