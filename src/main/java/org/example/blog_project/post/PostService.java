@@ -208,6 +208,8 @@ public class PostService {
         log.info("Loaded post with series: " + post.getSeries());  // 시리즈 정보 로
         Optional<Post> previousPost = getPreviousPost(post.getMember().getMemberId(), post.getPostId());
         Optional<Post> nextPost = getNextPost(post.getMember().getMemberId(), post.getPostId());
+
+        log.info("postURl: "+post.getPostUrl());
         return DetailPostDto.builder()
                 .title(post.getTitle())
                 .author(post.getMember().getName())
@@ -215,7 +217,7 @@ public class PostService {
                 .postTagList(post.postTagList)
                 .series(post.getSeries())
                 .content(post.getContent())
-                .profileImageUrl(post.getMainImageUrl())
+                .postImageList(post.postImageList)
                 .prePostUrl(previousPost.map(Post::getPostUrl).orElse(null))
                 .nextPostUrl(nextPost.map(Post::getPostUrl).orElse(null))
                 .build();
@@ -240,15 +242,23 @@ public class PostService {
         } else {
             allPosts = postRepository.findAllPostsOrderByLikesDesc();
         }
-        return allPosts.stream().map(post -> new PostDto(
-                post.getTitle(),
-                post.getIntroduce(),
-                post.getCreatedAt(),
-                post.getCommentList().size(),
-                post.getMember().getName(),
-                post.getLikesList().size(),
-                post.getMainImageUrl()
-        )).collect(Collectors.toList());
+
+        return allPosts.stream().map(post -> {
+            // 로그 출력
+            log.info("Post URL: {}", post.getPostUrl());
+
+            return new PostDto(
+                    post.getPostId(),
+                    post.getTitle(),
+                    post.getIntroduce(),
+                    post.getPostUrl(),
+                    post.getCreatedAt(),
+                    post.getCommentList().size(),
+                    post.getMember().getName(),
+                    post.getLikesList().size(),
+                    post.getMainImageUrl()
+            );
+        }).collect(Collectors.toList());
     }
     public List<TempPostDto> getAllTempPosts(){
         List<Post> allByIsTemp = postRepository.findAllByIsTemp(true);

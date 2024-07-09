@@ -72,7 +72,6 @@ public class PostController {
             String url = postService.publishPost(form, file, memberId);
             return ResponseEntity.ok(url);
         } catch (IllegalStateException e) {
-            //TODO URL 중복오류 문제 해결 : url오류에 걸리지않고 내부 서버오류가 남
             log.error("URL 중복 오류: " + e.getMessage()); // 로그에 오류 메시지 기록
             return ResponseEntity.badRequest().body(Collections.singletonMap("message", e.getMessage()));
         }
@@ -122,12 +121,13 @@ public class PostController {
     }
 
 
-    @GetMapping("/api/posts")
-    public  ResponseEntity<List<PostDto>> getAllPosts(@RequestParam(required = false,defaultValue = "0") int filter){
+    @GetMapping("/")
+    public  String getAllPosts(@RequestParam(required = false,defaultValue = "0") int filter,Model model){
         //filter = 0 : 최신순, =1 : 인기순
         List<PostDto> allPosts = postService.getAllPosts(filter);
 
-        return ResponseEntity.ok(allPosts);
+        model.addAttribute("posts", allPosts);
+        return "index";
     }
 
     @GetMapping("/api/posts/temp")
