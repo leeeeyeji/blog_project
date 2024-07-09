@@ -67,8 +67,9 @@
 <div class="container">
     <div th:each="post : ${posts}" class="card">
         <img th:src="@{${post.mainImageUrl}}" alt="Thumbnail" class="thumbnail">
+
         <div class="card-content">
-            <h2 th:text="${post.title}" th:attr="data-url=${post.postUrl}" onclick="redirectToPostUrl(this)">제목</h2>
+            <h2 th:text="${post.title}" th:attr="data-url=@{${post.postUrl}}" onclick="redirectToPostUrl(this)">제목</h2>
 
             <div class="meta">
                 <span class="author" th:text="${post.author}">작성자</span>
@@ -82,7 +83,9 @@
 <script>
     function redirectToPostUrl(element) {
         const url = element.getAttribute('data-url');
-        console.log("Redirecting to URL: " + url); // 로그를 찍어 URL 확인
+        const imageUrl = element.parentElement.parentElement.querySelector('.thumbnail').src;
+        console.log("Redirecting to URL: " + url);
+        console.log("Image URL: " + imageUrl); // 로그를 찍어 URL 확인
         window.location.href = url;
     }
 </script>

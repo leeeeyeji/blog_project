@@ -132,32 +132,37 @@
                     }
                 }
 
-                // Send the AJAX request
                 Auth.fetchWithAuth('/api/posts', {
                     method: 'POST',
                     body: formData
                 })
                     .then(response => {
-                        if (response.ok) {
-                            return response.json();
-                        } else if (response.status === 401) {
-                            throw new Error('Unauthorized: ' + response.status);
+                        // 응답 헤더를 확인하여 적절한 포맷으로 변환
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            return response.json(); // JSON 응답인 경우
                         } else {
-                            throw new Error('Error: ' + response.status);
+                            return response.text(); // 텍스트 응답인 경우
                         }
                     })
                     .then(response => {
-                        // 서버가 리다이렉트를 요구하는 경우
-                        if (!response.isTemp) { // Temporary Redirect
+                        if (typeof response === 'string' && response === 'temp') {
+                            // 임시 저장 응답인 경우 홈 페이지로 리다이렉트
+                            window.location.href = '/';
+                        } else if (typeof response === 'object' && response.postId) {
+                            // 임시 저장이 아닌 경우 발행 양식 페이지로 리다이렉트
                             window.location.href = '/publishForm?postId=' + response.postId;
                         } else {
-                            // 기본 홈 페이지로 리다이렉트
-                            window.location.href = '/';
+                            // 오류 메시지를 표시하거나 기타 처리
+                            console.error('Unexpected response:', response);
+                            alert('Unexpected response received.');
                         }
                     })
                     .catch(error => {
+                        console.error('Error:', error);
                         alert('Error: ' + error.message);
                     });
+
             });
         });
     </script>

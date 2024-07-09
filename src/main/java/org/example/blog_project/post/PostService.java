@@ -210,6 +210,7 @@ public class PostService {
         Optional<Post> nextPost = getNextPost(post.getMember().getMemberId(), post.getPostId());
 
         log.info("postURl: "+post.getPostUrl());
+        log.info("postImageUrl : "+post.getPostImageList().get(0).getImageUrl());
         return DetailPostDto.builder()
                 .title(post.getTitle())
                 .author(post.getMember().getName())
@@ -236,16 +237,17 @@ public class PostService {
 
     //filter = 0 : 최신순, =1 : 인기순
     public List<PostDto> getAllPosts(int filter){
-        List<Post> allPosts = postRepository.findAll();
+        List<Post> allPosts;
         if (filter == 0) {
-            allPosts = postRepository.findAllPostsOrderByCreatedAtDesc();
+            allPosts = postRepository.findAllByIsTempFalseOrderByCreatedAtDesc();
         } else {
-            allPosts = postRepository.findAllPostsOrderByLikesDesc();
+            allPosts = postRepository.findAllByIsTempFalseOrderByLikesSizeDesc();
         }
 
         return allPosts.stream().map(post -> {
             // 로그 출력
             log.info("Post URL: {}", post.getPostUrl());
+            log.info("Service: /Users/iyeji/Desktop/lionJava/blog_project/main_images/"+post.getMainImageUrl());
 
             return new PostDto(
                     post.getPostId(),
@@ -256,10 +258,11 @@ public class PostService {
                     post.getCommentList().size(),
                     post.getMember().getName(),
                     post.getLikesList().size(),
-                    post.getMainImageUrl()
+                    "/main_images/"+post.getMainImageUrl()
             );
         }).collect(Collectors.toList());
     }
+
     public List<TempPostDto> getAllTempPosts(){
         List<Post> allByIsTemp = postRepository.findAllByIsTemp(true);
         return allByIsTemp.stream().map(post -> new TempPostDto(

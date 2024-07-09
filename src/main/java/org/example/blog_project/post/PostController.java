@@ -44,7 +44,7 @@ public class PostController {
 
     @PostMapping("/api/posts")
     @ResponseBody
-    public CreatePostResDto createPost(@RequestHeader(name = "Authorization") String auth,
+    public ResponseEntity<?> createPost(@RequestHeader(name = "Authorization") String auth,
                                        @RequestPart(name = "postForm") PostForm postForm,
                                        @RequestParam(name = "files",required = false) List<MultipartFile> files){
 
@@ -55,10 +55,10 @@ public class PostController {
 
         log.info("" + result.getPostId() + result.getIsTemp());
         if (!result.getIsTemp()) {
-            return result;
+            return ResponseEntity.ok(result);
         }
 
-        return null;
+        return ResponseEntity.ok("temp");
     }
 
     @PostMapping("/api/posts/publish")
@@ -125,7 +125,7 @@ public class PostController {
     public  String getAllPosts(@RequestParam(required = false,defaultValue = "0") int filter,Model model){
         //filter = 0 : 최신순, =1 : 인기순
         List<PostDto> allPosts = postService.getAllPosts(filter);
-
+        log.info("Controller : "+allPosts.get(0).getMainImageUrl());
         model.addAttribute("posts", allPosts);
         return "index";
     }

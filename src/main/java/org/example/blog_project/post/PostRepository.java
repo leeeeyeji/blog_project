@@ -28,6 +28,9 @@ public interface PostRepository extends JpaRepository<Post,Long> {
 
     List<Post> findAllByIsTemp(boolean isTemp);
 
+    List<Post> findAllByIsTempFalseOrderByCreatedAtDesc();
 
+    @Query("SELECT p FROM Post p WHERE p.isTemp = false ORDER BY SIZE(p.likesList) DESC")
+    List<Post> findAllByIsTempFalseOrderByLikesSizeDesc();
 
 }

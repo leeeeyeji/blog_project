@@ -38,8 +38,8 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler(contentUploadPath)
                 .addResourceLocations(contentResourcePath);
 
-        registry.addResourceHandler(mainResourcePath)
-                .addResourceLocations(mainUploadPath);
+        registry.addResourceHandler(mainUploadPath)
+                .addResourceLocations(mainResourcePath);
     }
 
 //    @Bean
