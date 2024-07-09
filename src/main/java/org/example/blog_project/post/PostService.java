@@ -76,25 +76,25 @@ public class PostService {
     }
 
     @Transactional
-    public String publishPost(PublishForm form, MultipartFile file,Long memberId) {
+    public String publishPost(PublishForm form, MultipartFile file,Long memberId) throws Exception {
         Post post = postRepository.findById(form.getPostId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 게시글"));
         if(!memberId.equals(post.getMember().getMemberId())){
             return "잘못된 사용자";
         }
-        post.setTemp(false);
 
+        String encodedInput = URLEncoder.encode(form.getPostUrl(), "UTF-8");
+        String url = String.format("/@%s/%s", post.getMember().getLoginId(), encodedInput);
+        // URL 중복 검사
+        if (postRepository.findByPostUrl(url).isPresent()) {
+            throw new IllegalStateException("URL이 이미 사용 중입니다.");
+        }
+
+        post.setPostUrl(url);
+        post.setTemp(false);
         post.setIntroduce(form.getIntroduce());
         post.setisHide(form.getIsHide());
-        post.setSeries(post.getSeries());
-
-        try {
-            String encodedInput = URLEncoder.encode(form.getPostUrl(), "UTF-8");
-            String url = String.format("/@%s/%s", post.getMember().getLoginId(), encodedInput);
-            post.setPostUrl(url);
-        } catch (UnsupportedEncodingException e) {
-            log.info(e.getMessage());
-        }
+        post.setSeries(form.getSeries());
 
         if(file != null){
             if(post.getMainImageUrl()!=null){
@@ -204,6 +204,8 @@ public class PostService {
 
         Post post = postRepository.findByPostUrl(url)
                 .orElseThrow(() -> new RuntimeException("존재하지않는 게시글"));
+
+        log.info("Loaded post with series: " + post.getSeries());  // 시리즈 정보 로
         Optional<Post> previousPost = getPreviousPost(post.getMember().getMemberId(), post.getPostId());
         Optional<Post> nextPost = getNextPost(post.getMember().getMemberId(), post.getPostId());
         return DetailPostDto.builder()

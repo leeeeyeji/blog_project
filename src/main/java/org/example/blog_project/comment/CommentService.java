@@ -6,7 +6,7 @@ import org.example.blog_project.comment.dto.CommentDto;
 import org.example.blog_project.comment.dto.CommentForm;
 import org.example.blog_project.member.Member;
 import org.example.blog_project.member.MemberRepository;
-import org.example.blog_project.member.UserContext;
+
 import org.example.blog_project.post.Post;
 import org.example.blog_project.post.PostRepository;
 import org.springframework.http.ResponseEntity;

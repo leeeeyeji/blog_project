@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.blog_project.member.jwt.JwtGenerator;
 import org.example.blog_project.member.jwt.JwtProvider;
 import org.example.blog_project.post.dto.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,8 +14,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.Collections;
 import java.util.List;
-
+import java.util.Optional;
 
 
 @Controller
@@ -61,13 +63,23 @@ public class PostController {
 
     @PostMapping("/api/posts/publish")
     @ResponseBody
-    public ResponseEntity<String> publishPost(@RequestHeader(name = "Authorization") String auth,
+    public ResponseEntity<?> publishPost(@RequestHeader(name = "Authorization") String auth,
                               @RequestPart(name = "publishForm")PublishForm form,
                               @RequestParam(name = "file",required = false) MultipartFile file) {
-        String token = getToken(auth);
-        Long memberId = jwtProvider.getMemberIdFromToken(token);
-        String url = postService.publishPost(form, file,memberId);
-        return ResponseEntity.ok(url);
+        try {
+            String token = getToken(auth);
+            Long memberId = jwtProvider.getMemberIdFromToken(token);
+            String url = postService.publishPost(form, file, memberId);
+            return ResponseEntity.ok(url);
+        } catch (IllegalStateException e) {
+            //TODO URL 중복오류 문제 해결 : url오류에 걸리지않고 내부 서버오류가 남
+            log.error("URL 중복 오류: " + e.getMessage()); // 로그에 오류 메시지 기록
+            return ResponseEntity.badRequest().body(Collections.singletonMap("message", e.getMessage()));
+        }
+        catch (Exception e) {
+            log.error("내부 서버 오류: " + e.getMessage(), e); // 로그에 스택 트레이스와 함께 기록
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("message", "Internal server error"));
+        }
     }
 
     @PutMapping("/api/posts/{postId}")

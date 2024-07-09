@@ -49,8 +49,9 @@ public class FollowService {
                 .orElseThrow(() -> new RuntimeException("존재하지않는 사용자"));
         Member to_user = memberRepository.findById(to_userMemberId)
                 .orElseThrow(() -> new RuntimeException("존재하지않는 사용자"));
-        Follow follow = followRepository.findFollowByFromUserAndToUser(to_user, from_user)
-                .orElseThrow(() -> new RuntimeException("존재하지는 팔로우"));
+        log.info("user = "+to_userMemberId+from_userMemberId);
+        Follow follow = followRepository.findFollowByFromUserAndToUser(from_user, to_user)
+                .orElseThrow(() -> new RuntimeException("존재하지않는 팔로우"));
         followRepository.delete(follow);
         return "팔로우 삭제 성공";
     }
@@ -61,8 +62,9 @@ public class FollowService {
         List<Follow> allByFromUser = followRepository.findAllByFromUser(from_user);
 
         return allByFromUser.stream().map(follow -> new FollowDto(
+                follow.getToUser().getMemberId(),
                 follow.getToUser().getName(),
-                follow.getToUser().getMemberId()
+                follow.getToUser().getLoginId()
         )).collect(Collectors.toList());
     }
 }

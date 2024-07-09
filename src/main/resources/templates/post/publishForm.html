@@ -96,8 +96,8 @@
         class Auth {
             static getToken() {
                 const cookieName = 'jwtToken';
-                const cookie = document.cookie.split('; ').find(row => row.startsWith(cookieName));
-                return cookie ? cookie.split('=')[1] : null;
+                const cookie = document.cookie.split(';').find(row => row.trim().startsWith(cookieName + '='));
+                return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
             }
 
             static getAuthHeader() {
@@ -106,13 +106,12 @@
             }
 
             static fetchWithAuth(url, options = {}) {
-                options.headers = {
-                    ...this.getAuthHeader(),
-                    ...options.headers
-                };
+                options.headers = options.headers || {};
+                Object.assign(options.headers, this.getAuthHeader());
                 return fetch(url, options);
             }
         }
+
 
         $(document).ready(function () {
             var urlParams = new URLSearchParams(window.location.search);
@@ -146,15 +145,22 @@
                         if (response.ok) {
                             return response.text();
                         } else {
-                            throw new Error('Error: ' + response.status);
+                            // 여기서 response.json()을 호출하여 서버에서 보낸 JSON 응답을 파싱합니다.
+                            return response.json();
                         }
                     })
                     .then(data => {
-                        window.location.href = data;
+                        if (typeof data === 'string') {
+                            window.location.href = data; // 성공적으로 URL이 반환되었다면 이동
+                        } else {
+                            // 서버에서 에러 메시지를 JSON 형태로 보냈다면, 여기서 처리
+                            alert(data.message);
+                        }
                     })
                     .catch(error => {
-                        alert(error);
+                        alert('An error occurred: ' + error.message); // 네트워크 오류 등의 문제 처리
                     });
+
             });
         });
     </script>

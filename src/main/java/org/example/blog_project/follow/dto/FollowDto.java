@@ -8,7 +8,8 @@ import lombok.Data;
 @Builder
 @AllArgsConstructor
 public class FollowDto {
+    private Long memberId;
     private String name;
-    private Long loginId;
+    private String loginId;
 
 }

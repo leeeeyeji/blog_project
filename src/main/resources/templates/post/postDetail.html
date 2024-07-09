@@ -8,23 +8,43 @@
 <h1 th:text="${post.title}">게시글 제목</h1>
 <p>작성자: <span th:text="${post.author}">작성자 이름</span></p>
 <p>작성일: <span th:text="${post.createdAt}">작성일</span></p>
+
+<!-- Series Section -->
+<div th:if="${post.series != null}">
+    <p>시리즈: <span th:text="${post.series}">시리즈 정보</span></p>
+</div>
+
+<!-- Image Section -->
 <div th:if="${post.postImageList != null}">
     <div th:each="image : ${post.postImageList}">
         <img th:src="@{${image.imageUrl}}" alt="게시물 이미지" style="max-width: 100%; height: auto;">
     </div>
 </div>
+
+<!-- Content Section -->
 <p th:text="${post.content}">게시글 내용</p>
 
+<!-- Tags Section -->
 <div>
-        <span th:if="${post.prePostUrl != null}">
-            <a th:href="@{${post.prePostUrl}}">이전글</a>
-        </span>
+    <span>태그:</span>
+    <ul th:if="${post.postTagList != null}">
+        <li th:each="postTag : ${post.postTagList}" th:text="${postTag.tags.tagName}">태그</li>
+    </ul>
 </div>
 
+<!-- Navigation Links -->
 <div>
-        <span th:if="${post.nextPostUrl != null}">
-            <a th:href="@{${post.nextPostUrl}}">다음글</a>
-        </span>
+    <span th:if="${post.prePostUrl != null}">
+        <a th:href="@{${post.prePostUrl}}">이전글</a>
+    </span>
 </div>
+<div>
+    <span th:if="${post.nextPostUrl != null}">
+        <a th:href="@{${post.nextPostUrl}}">다음글</a>
+    </span>
+</div>
+
 </body>
 </html>
+
+
