@@ -158,6 +158,18 @@ public class MemberController {
     }
 
 
+    @PostMapping("/api/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        Cookie cookie = new Cookie("jwtToken", null);
+        cookie.setMaxAge(0); // 쿠키의 만료 시간을 0으로 설정하여 삭제
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        response.addCookie(cookie); // 변경된 쿠키 정보를 응답에 추가
+
+
+        return ResponseEntity.ok().body("{\"message\":\"Logged out successfully.\"}");
+    }
+
 
     @PutMapping("/api/info/send-comment-email")
     public ResponseEntity<Void> updateAllowCommentEmail(@RequestHeader(name = "Authorization") String auth,
