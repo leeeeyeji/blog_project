@@ -40,11 +40,13 @@ public class CommentService {
                 .build();
 
         commentRepository.save(comment);
+
         member.getCommentList()
                 .add(comment);
         post.getCommentList()
                 .add(comment);
         return "댓글 저장 완료";
+
     }
 
     @Transactional

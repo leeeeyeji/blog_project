@@ -27,24 +27,16 @@ public class LikesController {
     }
 
     @PostMapping("/{postId}")
-    public ResponseEntity<String> insertLikes(@RequestHeader(name = "Authorization") String auth,
+    public ResponseEntity<String> likes(@RequestHeader(name = "Authorization") String auth,
                                               @PathVariable Long postId){
         String token = getToken(auth);
         Long memberId = jwtProvider.getMemberIdFromToken(token);
         try {
-            likesService.insertLikes(postId,memberId);
-            return ResponseEntity.ok("좋아요 등록 완료");
-        }catch (Exception e){
+            String result = likesService.likes(postId, memberId);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-    }
-    @DeleteMapping("/{postId}")
-    public ResponseEntity<String> undoLikes(@RequestHeader(name = "Authorization") String auth,
-                                            @PathVariable Long postId){
-        String token = getToken(auth);
-        Long memberId = jwtProvider.getMemberIdFromToken(token);
-        likesService.undoLikes(postId,memberId);
-        return ResponseEntity.ok("좋아요 취소 완료");
     }
 
     @GetMapping

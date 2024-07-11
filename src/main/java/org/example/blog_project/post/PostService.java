@@ -204,6 +204,7 @@ public class PostService {
 
         Post post = postRepository.findByPostUrl(url)
                 .orElseThrow(() -> new RuntimeException("존재하지않는 게시글"));
+        Member member = memberRepository.findMemberByLoginId(loginId);
 
         log.info("Loaded post with series: " + post.getSeries());  // 시리즈 정보 로
         Optional<Post> previousPost = getPreviousPost(post.getMember().getMemberId(), post.getPostId());
@@ -212,6 +213,7 @@ public class PostService {
         log.info("postURl: "+post.getPostUrl());
         log.info("postImageUrl : "+post.getPostImageList().get(0).getImageUrl());
         return DetailPostDto.builder()
+                .postId(post.getPostId())
                 .title(post.getTitle())
                 .author(post.getMember().getName())
                 .createdAt(post.getCreatedAt())
@@ -221,6 +223,8 @@ public class PostService {
                 .postImageList(post.postImageList)
                 .prePostUrl(previousPost.map(Post::getPostUrl).orElse(null))
                 .nextPostUrl(nextPost.map(Post::getPostUrl).orElse(null))
+                .likesList(post.getLikesList())
+                .commentList(post.getCommentList())
                 .build();
     }
 
@@ -261,6 +265,23 @@ public class PostService {
                     "/main_images/"+post.getMainImageUrl()
             );
         }).collect(Collectors.toList());
+    }
+
+    public List<PostDto> getAllMyPosts(Long memberId){
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("존재하지않는 사용자"));
+        List<Post> myPosts = postRepository.findAllByMember(member);
+        return myPosts.stream().map(post -> new PostDto(
+                    post.getPostId(),
+                    post.getTitle(),
+                    post.getPostUrl(),
+                    post.getIntroduce(),
+                    post.getCreatedAt(),
+                    post.getCommentList().size(),
+                    post.getMember().getName(),
+                    post.getLikesList().size(),
+                    "/main_images/"+post.getMainImageUrl()
+            )).collect(Collectors.toList());
     }
 
     public List<TempPostDto> getAllTempPosts(){

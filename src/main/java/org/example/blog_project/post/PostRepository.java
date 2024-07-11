@@ -1,6 +1,7 @@
 package org.example.blog_project.post;
 
 
+import org.example.blog_project.member.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -32,5 +33,7 @@ public interface PostRepository extends JpaRepository<Post,Long> {
 
     @Query("SELECT p FROM Post p WHERE p.isTemp = false ORDER BY SIZE(p.likesList) DESC")
     List<Post> findAllByIsTempFalseOrderByLikesSizeDesc();
+
+    List<Post> findAllByMember(Member member);
 
 }

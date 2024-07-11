@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>내 게시글 목록</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <style>
+        .container {
+            width: 80%;
+            margin: auto;
+            padding-top: 50px;
+        }
+
+        .post-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .post {
+            display: flex;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        .post-image {
+            width: 150px;
+            height: 150px;
+            margin-right: 20px;
+        }
+
+        .post-details {
+            flex-grow: 1;
+        }
+
+        .view-post {
+            display: inline-block;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>내 게시글 목록</h1>
+    <div class="post-list">
+        <ul>
+            <li th:each="post : ${myPosts}">
+                <div class="post">
+                    <img th:src="@{${post.mainImageUrl}}" alt="Post Image" class="post-image">
+                    <div class="post-details">
+                        <h2 th:text="${post.title}">게시글 제목</h2>
+                        <p th:text="${post.introduce}">게시글 소개</p>
+                        <div class="post-meta">
+                            <span th:text="'댓글 수: ' + ${post.commentsAmount}">댓글 수</span>
+                            <span th:text="'좋아요 수: ' + ${post.likes}">좋아요 수</span>
+                        </div>
+                        <a th:href="@{${post.postUrl}}" class="view-post">게시글 보기</a>
+                    </div>
+                </div>
+            </li>
+            <li th:if="${#lists.isEmpty(myPosts)}">
+                작성한 게시글이 없습니다.
+            </li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith(name + '=')) {
+                    const value = decodeURIComponent(cookie.substring(name.length + 1));
+                    console.log("Found token: ", value);  // 로그 추가
+                    // Check if the cookie value is not just empty
+                    if (value !== "") {
+                        cookieValue = value;
+                        break;
+                    }
+                }
+            }
+        }
+        return cookieValue;
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/posts/my', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + getCookie('jwtToken')
+            }
+        })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
+    });
+</script>
+</body>
+</html>

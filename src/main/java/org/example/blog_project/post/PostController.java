@@ -7,6 +7,8 @@ import org.example.blog_project.member.jwt.JwtProvider;
 import org.example.blog_project.post.dto.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -102,9 +104,24 @@ public class PostController {
     }
 
     @GetMapping("/@{loginId}/{encodedTitle}")
-    public String getDetailPost(@PathVariable String loginId,
+    public String getDetailPost(@RequestHeader(name = "Authorization",required = false) String auth,
+                                @PathVariable String loginId,
                                 @PathVariable String encodedTitle,
                                 Model model) throws UnsupportedEncodingException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isLoggedIn = (authentication != null && authentication.isAuthenticated());
+        model.addAttribute("isLoggedIn", isLoggedIn);
+        /*if (auth !=null){
+            String token = getToken(auth);
+            Long memberId = jwtProvider.getMemberIdFromToken(token);
+            model.addAttribute("memberId",memberId);
+            log.info("memberId = "+memberId);
+        }*/
+        if (isLoggedIn) {
+            String memberId= authentication.getName();
+            model.addAttribute("memberId", memberId);
+        }
+
 
         // URL 디코딩
         String decodedTitle = URLDecoder.decode(encodedTitle, "UTF-8");
@@ -115,6 +132,8 @@ public class PostController {
 
         // 모델에 게시글 정보를 추가
         model.addAttribute("post", post);
+        //model.addAttribute("memberId", memberId);
+
 
         // 게시글 상세 페이지를 반환
         return "post/postDetail"; // 뷰 이름
@@ -129,6 +148,18 @@ public class PostController {
         model.addAttribute("posts", allPosts);
         return "index";
     }
+
+    @GetMapping("/api/posts/my")
+    public String getAllMyPosts(@RequestHeader(name = "Authorization") String auth,
+                                                      Model model){
+        String token = getToken(auth);
+        Long memberId = jwtProvider.getMemberIdFromToken(token);
+        log.info("Received Authorization header: " + auth);
+        List<PostDto> allMyPosts = postService.getAllMyPosts(memberId);
+        model.addAttribute("myPosts",allMyPosts);
+        return "post/myPosts";
+    }
+
 
     @GetMapping("/api/posts/temp")
     public ResponseEntity<List<TempPostDto>> getAllTempPosts(){
