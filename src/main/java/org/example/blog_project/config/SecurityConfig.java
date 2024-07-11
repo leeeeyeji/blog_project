@@ -40,6 +40,7 @@ public class SecurityConfig {
             "/info",
             "/postform",
             "/publishForm",
+            "/my",
             "/@**"
 
     };

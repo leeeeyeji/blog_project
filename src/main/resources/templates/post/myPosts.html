@@ -9,9 +9,10 @@
             width: 80%;
             margin: auto;
             padding-top: 50px;
+            position: relative;
         }
 
-        .post-list {
+        .post-list ul {
             list-style: none;
             padding: 0;
         }
@@ -35,18 +36,38 @@
 
         .view-post {
             display: inline-block;
-            padding: 10px;
+            padding: 8px 12px;
             background-color: #4CAF50;
             color: white;
             text-decoration: none;
             border-radius: 5px;
+            font-size: 14px;
         }
+        h1 {
+            left: 20px;
+        }
+        .my-posts {
+            font-size: 24px;
+            color: #333;
+            left: 200px; /* Adjusted position to make it visible */
+        }
+        .settings {
+            font-size: 20px;
+            color: #4CAF50; /* Theme green color */
+            position: absolute;
+            top: 20px; /* Align with the title but on the right */
+            right: 20px;
+            cursor: pointer;
+        }
+
 
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>내 게시글 목록</h1>
+    <h1 onclick="window.location.href='/'">Velog</h1>
+    <h3 class="settings" onclick="window.location.href='/info'">Settings</h3>
+    <h3 class="my-posts">나의 게시글</h3>
     <div class="post-list">
         <ul>
             <li th:each="post : ${myPosts}">
@@ -98,8 +119,32 @@
             }
         })
             .then(response => response.json())
-            .then(data => console.log(data))
+            .then(data => {console.log("Received data:", data);  // 데이터 구조 확인
+        return data; })
+            .then(data => {
+                const postsContainer = document.querySelector('.post-list ul');
+                postsContainer.innerHTML = ''; // 기존 목록을 비웁니다.
+                data.forEach(post => {
+                    const postElement = `
+                <li>
+                    <div class="post">
+                        <img src="${post.mainImageUrl}" alt="Post Image" class="post-image">
+                        <div class="post-details">
+                            <h2>${post.title}</h2>
+                            <p>${post.introduce}</p>
+                            <div class="post-meta">
+                                <span>댓글 수: ${post.commentsAmount}</span>
+                                <span>좋아요 수: ${post.likes}</span>
+                            </div>
+                            <a href="${post.postUrl}" class="view-post">게시글 보기</a>
+                        </div>
+                    </div>
+                </li>`;
+                    postsContainer.innerHTML += postElement; // 목록에 게시글 요소를 추가합니다.
+                });
+            })
             .catch(error => console.error('Error:', error));
+
     });
 </script>
 </body>

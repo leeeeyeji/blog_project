@@ -148,16 +148,19 @@ public class PostController {
         model.addAttribute("posts", allPosts);
         return "index";
     }
-
+    @GetMapping("/my")
+    public String getAllMyPosts(){
+        return "post/myPosts";
+    }
     @GetMapping("/api/posts/my")
-    public String getAllMyPosts(@RequestHeader(name = "Authorization") String auth,
+    public ResponseEntity<List<PostDto>> getAllMyPosts(@RequestHeader(name = "Authorization") String auth,
                                                       Model model){
         String token = getToken(auth);
         Long memberId = jwtProvider.getMemberIdFromToken(token);
         log.info("Received Authorization header: " + auth);
         List<PostDto> allMyPosts = postService.getAllMyPosts(memberId);
         model.addAttribute("myPosts",allMyPosts);
-        return "post/myPosts";
+        return ResponseEntity.ok(allMyPosts);
     }
 
 

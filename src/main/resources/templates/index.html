@@ -16,6 +16,12 @@
             min-height: 100vh;
         }
         .container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .main-container {
             width: 100%;
             max-width: 1200px;
             display: flex;
@@ -71,7 +77,7 @@
             cursor: pointer;
         }
         .action-button {
-            position: fixed;
+            position: absolute;
             top: 20px;
             right: 20px;
             font-size: 1.2em;
@@ -83,7 +89,7 @@
             cursor: pointer;
         }
         .new-post-button {
-            position: fixed;
+            position: absolute;
             top: 20px;
             right: 150px;
             font-size: 1.2em;
@@ -94,17 +100,53 @@
             border-radius: 5px;
             cursor: pointer;
         }
+        .my-blog-button {
+            position: absolute;
+            top: 20px;
+            right: 280px; /* Adjust the position as needed */
+            font-size: 1.2em;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .sort-options input[type="radio"] {
+            margin-right: 5px;
+        }
+
+        .sort-options label {
+            margin-right: 20px;
+            cursor: pointer;
+        }
+
+        .sort-options input[type="radio"]:checked + label {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
     </style>
 </head>
 <body>
 <h1 onclick="window.location.reload();">Velog</h1>
 
+<button id="my-blog-button" class="my-blog-button" onclick="window.location.href='/my';" style="display:none;">내 블로그</button>
 <button id="new-post-button" class="new-post-button" onclick="window.location.href='/postform';" style="display:none;">새글작성</button>
 <button id="login-button" class="action-button" onclick="window.location.href='/login';" style="display:none;">로그인</button>
 <button id="logout-button" class="action-button" onclick="logout();" style="display:none;">로그아웃</button>
 
 </div>
-<div class="container">
+<div class="main-container">
+    <div class="sort-options">
+        <form method="GET" action="/" class="sort-options">
+            <input type="radio" id="recent" name="filter" value="0" th:checked="${filter==0}" onchange="this.form.submit()">
+            <label for="recent">최신순</label>
+            <input type="radio" id="popular" name="filter" value="1" th:checked="${filter==1}" onchange="this.form.submit()">
+            <label for="popular">인기순</label>
+        </form>
+    </div>
+    <div class="container">
     <div th:each="post : ${posts}" class="card">
         <img th:src="@{${post.mainImageUrl}}" alt="Thumbnail" class="thumbnail">
 
@@ -130,14 +172,17 @@
     }
     document.addEventListener('DOMContentLoaded', function() {
         const jwtToken = getCookie('jwtToken');
+        var myBlogButton = document.getElementById('my-blog-button');
         var newPostButton = document.getElementById('new-post-button');
         var loginButton = document.getElementById('login-button');
         var logoutButton = document.getElementById('logout-button');
         if (jwtToken) {
+            myBlogButton.style.display = 'inline-block';
             newPostButton.style.display = 'inline-block';
             loginButton.style.display='none';
             logoutButton.style.display = 'inline-block';
         }else{
+            myBlogButton.style.display = 'none';
             newPostButton.style.display ='none' ;
             loginButton.style.display='inline-block';
             logoutButton.style.display = 'none';
