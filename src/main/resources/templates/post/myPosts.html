@@ -59,6 +59,15 @@
             right: 20px;
             cursor: pointer;
         }
+        .delete-post{
+            display: inline-block;
+            padding: 8px 12px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 14px;
+        }
 
 
     </style>
@@ -137,6 +146,7 @@
                                 <span>좋아요 수: ${post.likes}</span>
                             </div>
                             <a href="${post.postUrl}" class="view-post">게시글 보기</a>
+                            <button onclick="deletePost(${post.postId})" class="delete-post">삭제</button>
                         </div>
                     </div>
                 </li>`;
@@ -146,6 +156,26 @@
             .catch(error => console.error('Error:', error));
 
     });
+
+    function deletePost(postId) {
+        if (confirm("게시글을 삭제하시겠습니까?")) {
+            fetch(`/api/posts/${postId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + getCookie('jwtToken')
+                }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('게시글이 삭제되었습니다.');
+                        window.location.reload(); // 페이지를 새로고침하여 변경사항 반영
+                    } else {
+                        throw new Error('게시글 삭제에 실패했습니다.');
+                    }
+                })
+                .catch(error => alert(error.message));
+        }
+    }
 </script>
 </body>
 </html>
