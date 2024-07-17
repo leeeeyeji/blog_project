@@ -141,9 +141,10 @@ public class PostController {
 
 
     @GetMapping("/")
-    public  String getAllPosts(@RequestParam(required = false,defaultValue = "0") int filter,Model model){
+    public  String getAllPosts(@RequestParam(required = false,defaultValue = "0") int filter,
+                               @RequestParam(required = false)String keyword, Model model){
         //filter = 0 : 최신순, =1 : 인기순
-        List<PostDto> allPosts = postService.getAllPosts(filter);
+        List<PostDto> allPosts = postService.getAllPosts(filter,keyword);
         log.info("Controller : "+allPosts.get(0).getMainImageUrl());
         model.addAttribute("posts", allPosts);
         return "index";

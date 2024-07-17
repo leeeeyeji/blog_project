@@ -240,13 +240,18 @@ public class PostService {
     }
 
     //filter = 0 : 최신순, =1 : 인기순
-    public List<PostDto> getAllPosts(int filter){
+    public List<PostDto> getAllPosts(int filter,String keyword){
         List<Post> allPosts;
-        if (filter == 0) {
-            allPosts = postRepository.findAllByIsTempFalseOrderByCreatedAtDesc();
-        } else {
-            allPosts = postRepository.findAllByIsTempFalseOrderByLikesSizeDesc();
+        if(keyword!=null){
+            allPosts = postRepository.findByTitleContaining(keyword);
+        }else {
+            if (filter == 0) {
+                allPosts = postRepository.findAllByIsTempFalseOrderByCreatedAtDesc();
+            } else {
+                allPosts = postRepository.findAllByIsTempFalseOrderByLikesSizeDesc();
+            }
         }
+
 
         return allPosts.stream().map(post -> {
             // 로그 출력

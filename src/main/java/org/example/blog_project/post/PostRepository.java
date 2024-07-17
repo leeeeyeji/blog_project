@@ -31,4 +31,6 @@ public interface PostRepository extends JpaRepository<Post,Long> {
 
     List<Post> findAllByMember(Member member);
 
+    List<Post> findByTitleContaining(String keyword);
+
 }
