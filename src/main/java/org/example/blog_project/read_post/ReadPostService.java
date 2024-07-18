@@ -44,8 +44,8 @@ public class ReadPostService {
         List<ReadPost> readPosts = readPostRepository.findByMember_memberIdOrderByReadAtDesc(memberId);
         List<Post> collect = readPosts.stream().map(ReadPost::getPost).collect(Collectors.toList());
         List<ReadPostDto> collect1 = collect.stream().map(post -> new ReadPostDto(
-                post.getMember().getMemberId(),
                 post.getPostId(),
+                post.getMember().getMemberId(),
                 post.getTitle(),
                 post.getMember().getName(),
                 post.getMainImageUrl(),
