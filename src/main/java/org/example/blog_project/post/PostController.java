@@ -2,7 +2,6 @@ package org.example.blog_project.post;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.blog_project.member.jwt.JwtGenerator;
 import org.example.blog_project.member.jwt.JwtProvider;
 import org.example.blog_project.post.dto.*;
 import org.springframework.http.HttpStatus;
@@ -18,7 +17,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 
 @Controller

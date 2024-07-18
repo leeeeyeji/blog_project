@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import org.example.blog_project.member.Member;
 import org.example.blog_project.post.Post;
 
+import java.time.LocalDateTime;
+
 @Entity
 @NoArgsConstructor
 @Getter
@@ -20,4 +22,6 @@ public class ReadPost {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
+
+    private LocalDateTime readAt;
 }
