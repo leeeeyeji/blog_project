@@ -1,6 +1,7 @@
 package org.example.blog_project.read_post;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.blog_project.member.Member;
@@ -24,4 +25,10 @@ public class ReadPost {
     private Post post;
 
     private LocalDateTime readAt;
+
+    @Builder
+    public ReadPost(Member member,Post post) {
+        this.member = member;
+        this.post = post;
+    }
 }

@@ -26,12 +26,12 @@ public class ReadPostController {
     }
 
     @GetMapping("/api/posts/read")
-    public ResponseEntity<List<Post>> getReadPosts(@RequestHeader(name = "Authorization") String auth,
+    public ResponseEntity<List<ReadPostDto>> getReadPosts(@RequestHeader(name = "Authorization") String auth,
                                                    Model model){
         String token = getToken(auth);
         Long memberId = jwtProvider.getMemberIdFromToken(token);
 
-        List<Post> readPosts = readPostService.getReadPosts(memberId);
+        List<ReadPostDto> readPosts = readPostService.getReadPosts(memberId);
         model.addAttribute("read_posts",readPosts);
         return ResponseEntity.ok(readPosts);
     }

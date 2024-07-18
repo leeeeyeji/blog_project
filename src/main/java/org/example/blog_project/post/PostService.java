@@ -9,6 +9,8 @@ import org.example.blog_project.post_image.PostImageService;
 import org.example.blog_project.post_tag.PostTag;
 import org.example.blog_project.post_tag.PostTagRepository;
 import org.example.blog_project.post_tag.PostTagService;
+import org.example.blog_project.read_post.ReadPost;
+import org.example.blog_project.read_post.ReadPostRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +43,7 @@ public class PostService {
     private final PostImageService postImageService;
     private final PostTagService postTagService;
     private final PostTagRepository postTagRepository;
+    private final ReadPostRepository readPostRepository;
 
     @Transactional
     public CreatePostResDto createPost(Long memberId, PostForm postForm, List<MultipartFile> files){
@@ -212,6 +215,9 @@ public class PostService {
 
         log.info("postURl: "+post.getPostUrl());
         log.info("postImageUrl : "+post.getPostImageList().get(0).getImageUrl());
+
+
+
         return DetailPostDto.builder()
                 .postId(post.getPostId())
                 .title(post.getTitle())

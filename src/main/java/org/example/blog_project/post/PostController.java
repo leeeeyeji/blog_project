@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.blog_project.member.jwt.JwtProvider;
 import org.example.blog_project.post.dto.*;
+import org.example.blog_project.read_post.ReadPostService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -25,6 +26,7 @@ import java.util.List;
 public class PostController {
     private final PostService postService;
     private final JwtProvider jwtProvider;
+    private final ReadPostService readPostService;
     private static String getToken(String auth){
         if (auth == null || !auth.startsWith("Bearer ")){
             throw new RuntimeException("잘못된 토큰");
@@ -109,16 +111,12 @@ public class PostController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isLoggedIn = (authentication != null && authentication.isAuthenticated());
         model.addAttribute("isLoggedIn", isLoggedIn);
-        /*if (auth !=null){
-            String token = getToken(auth);
-            Long memberId = jwtProvider.getMemberIdFromToken(token);
-            model.addAttribute("memberId",memberId);
-            log.info("memberId = "+memberId);
-        }*/
-        if (isLoggedIn) {
+
+        /*if (isLoggedIn) {
             String memberId= authentication.getName();
             model.addAttribute("memberId", memberId);
-        }
+            log.info("memberId!!!!: "+memberId);
+        }*/
 
 
         // URL 디코딩
@@ -127,10 +125,17 @@ public class PostController {
 
         // 게시글 상세 정보를 데이터베이스에서 조회
         DetailPostDto post = postService.getDetailPost(loginId, decodedTitle);
+        if (auth !=null){
+            String token = getToken(auth);
+            Long memberId = jwtProvider.getMemberIdFromToken(token);
+            model.addAttribute("memberId",memberId);
+            log.info("memberId = "+memberId);
 
+            readPostService.saveReadPosts(post.getPostId(),memberId);
+        }
         // 모델에 게시글 정보를 추가
         model.addAttribute("post", post);
-        //model.addAttribute("memberId", memberId);
+
 
 
         // 게시글 상세 페이지를 반환
